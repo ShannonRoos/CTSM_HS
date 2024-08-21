@@ -1263,6 +1263,7 @@ contains
     call init_accum_field(name='TREFAV_R', units='K', &
          desc='average over an hour of rural 2-m temperature', accum_type='timeavg', accum_period=nint(3600._r8/dtime), &
          subgrid_type='pft', numlev=1, init_value=0._r8)
+     
 
     ! The following is a running mean. The accumulation period is set to -10 for a 10-day running mean.
     call init_accum_field (name='T10', units='K', &
@@ -1611,6 +1612,9 @@ contains
     call extract_accum_field ('T_VEG24' , this%t_veg24_patch  , nstep)
     call update_accum_field  ('T_VEG240', rbufslp             , nstep)
     call extract_accum_field ('T_VEG240', this%t_veg240_patch , nstep)
+
+    !added by SdR as part of heatstress implementation
+    call crop_inst%crop_heatstress_ndays(bounds)
 
     ! Accumulate and extract TREFAV - hourly average 2m air temperature
     ! Used to compute maximum and minimum of hourly averaged 2m reference
