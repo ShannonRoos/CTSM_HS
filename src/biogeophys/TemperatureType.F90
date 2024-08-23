@@ -83,7 +83,7 @@ module TemperatureType
      ! added by SdR as part of HS implementation (20-08-24)
      real(r8) , pointer :: HS_ndays_patch           (:)   ! patch day count for heat stress
      real(r8) , pointer :: heatwave_crop_patch      (:)   ! check if heatwave is activated
-     !real(r8) , pointer :: HS_factor_patch         (:)   ! patch day count for heat stress
+     real(r8) , pointer :: HS_factor_patch          (:)   ! patch day count for heat stress
 
 
      ! Accumulated quantities
@@ -143,6 +143,7 @@ module TemperatureType
      procedure, public  :: UpdateAccVars
      procedure, private :: UpdateAccVars_CropGDDs
      procedure, public  :: crop_heatstress_ndays       ! SdR: checks for number of days above Tcrit for crop heat stress
+     procedure, public  :: calc_HS_factor              ! SdR: checks for number of days above Tcrit for crop heat stress
      procedure, private :: ReadNL
 
   end type temperature_type
@@ -292,7 +293,7 @@ contains
 
     ! added by SdR as part of heat stress implementation (22-08-24)
     allocate(this%HS_ndays_patch           (begp:endp))                      ; this%HS_ndays_patch           (:)   = 0.0_r8
-    !allocate(this%HS_factor_patch         (begp:endp))                      ; this%HS_factor_patch          (:)   = 1
+    allocate(this%HS_factor_patch          (begp:endp))                      ; this%HS_factor_patch          (:)   = 1.0_r8
     allocate(this%heatwave_crop_patch      (begp:endp))                      ; this%heatwave_crop_patch      (:)   = 0.0_r8
 
     ! Heat content
@@ -455,16 +456,22 @@ contains
     call hist_addfld1d (fname='TVNIGHT', units='K',  &
          avgflag='A', long_name='average nighttime vegetation temperature', &
          ptr_patch=this%t_veg_night_patch, default='inactive')
+    
     ! added by SdR for heat stress implementation
     this%HS_ndays_patch(begp:endp) = spval
     call hist_addfld1d (fname='HS_NDAYS', units='ndays', &
-         avgflag='X', long_name='number of days with daily crop temperature above critical', &
+         avgflag='A', long_name='number of days with daily crop temperature above critical', &
          ptr_patch=this%HS_ndays_patch, default='inactive')
 
     this%heatwave_crop_patch(begp:endp) = spval
     call hist_addfld1d (fname='HW', units='boolean', &
          avgflag='I', long_name='crop heatwave activated', &
          ptr_patch=this%heatwave_crop_patch, default='inactive')
+
+    this%HS_factor_patch(begp:endp) = spval
+    call hist_addfld1d (fname='HSF', units='unitless', &
+         avgflag='A', long_name='heat stress factor', &
+         ptr_patch=this%HS_factor_patch, default='inactive')
 
     this%t_skin_patch(begp:endp) = spval
     call hist_addfld1d(fname='TSKIN', units='K',  &
@@ -1168,6 +1175,10 @@ contains
             dim1name='pft', long_name='number of heatstressed days crop', &
             units='boolean', &
             interpinic_flag='interp', readvar=readvar, data=this%HS_ndays_patch)
+       call restartvar(ncid=ncid, flag=flag,  varname='HS_factor_patch',xtype=ncd_double, &
+            dim1name='pft', long_name='heat stress factor for LAI decline', &
+            units='unitless', &
+            interpinic_flag='interp', readvar=readvar, data=this%HS_factor_patch)
     endif
 
     if ( is_prog_buildtemp )then
@@ -1662,6 +1673,7 @@ contains
           this%t_ref2m_min_inst_patch(p) =  spval
           ! added SdR as part of implementation of heatstress
           call this%crop_heatstress_ndays(p)
+          call this%HS_factor_patch(p)
        else if (secs == dtime) then
           this%t_ref2m_max_patch(p) = spval
           this%t_ref2m_min_patch(p) = spval
@@ -1833,6 +1845,52 @@ contains
 
     end associate
   end subroutine crop_heatstress_ndays
+
+  subroutine calc_HS_factor(this, p)
+
+    ! !DESCRIPTION:
+    ! added by SdR for heat stress implementation
+    ! function to calculate heat stress severity by applying a factor to bglfr (increasing LAI decline)
+
+    ! !ARGUMENTS:
+    class(temperature_type) :: this
+    integer, intent(in)     :: p        ! CROP PATCH index running over
+
+    ! !LOCAL VARIABLES:
+    real(r8) :: tcrit, tmax 		!placeholders for input parameters (will be seperate development)
+    integer :: day_min, day_max
+
+    !-----------------------------------------------------------------------
+    associate(                                                         &
+          t_veg_dayi      => this%t_veg_day_patch                      , & ! Input:  [real(r8) (:) ] daytime mean vegetation temperature (Kelvin)
+          HS_ndays        => this%HS_ndays_patch                       , & ! Input:  [integer  (:) ] number of crop heat stress days (ndays)
+          HS_factor       => this%HS_factor_patch                        & ! input:  [real(r8) (:) ] magnitude of heat stress effect on bglfr
+          ! croplive        => this%croplive_patch                       , & ! Input:  [logical  (:) ] true if planted and not harvested
+          )
+
+    tcrit = 300
+    tmax  = 310
+    day_min = 3
+    day_max = 5
+    
+    !check  if stress occurs
+    if (HS_ndays(p) < day_min) then
+       HS_factor(p) = 1._r8
+    else if (HS_ndays(p) == day_min) then
+       ! onset heatwave
+	  HS_factor(p) = 1.05_r8
+    else if (HS_ndays(p) > day_min) then
+       if (t_veg_dayi(p) < tmax .and. t_veg_dayi(p) > tcrit) then
+	     HS_factor(p) = 1._r8 + 0.5_r8 * ((t_veg_dayi(p) - tcrit) / (tmax - tcrit))
+	  else if (t_veg_dayi(p) > tmax .and. HS_ndays(p) < day_max) then
+		HS_factor(p) = 1.5_r8
+	  else if (t_veg_dayi(p) > tmax .and. HS_ndays(p) > day_max) then
+		HS_factor(p) = 1.7_r8
+	  end if
+    end if
+
+    end associate
+end subroutine calc_HS_factor
 
   subroutine Clean(this)
      !
