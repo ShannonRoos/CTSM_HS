@@ -463,7 +463,7 @@ contains
 
     this%heatwave_crop_patch(begp:endp) = spval
     call hist_addfld1d (fname='HW', units='boolean', &
-         avgflag='A', long_name='crop heatwave activated', &
+         avgflag='I', long_name='crop heatwave activated', &
          ptr_patch=this%heatwave_crop_patch, default='inactive')
 
     this%t_skin_patch(begp:endp) = spval
@@ -1814,8 +1814,8 @@ contains
           heatwave_crop  => this%heatwave_crop_patch					   & ! input:  [real(r8)  (:) ] keep track if heatwave is activated
           )
 
-    tcrit = 300.0_r8
-    HS_ndays_min = 3
+    tcrit = 306.0_r8
+    HS_ndays_min = 3.0_r8
 
     ! check if tcrit is exceeded and count days
     if (t_veg_day(p) >= tcrit) then
@@ -1825,7 +1825,7 @@ contains
     end if
 
     ! check if a heatwave is occurring
-    if (HS_ndays(p) >= (HS_ndays_min-0.1)) then
+    if (HS_ndays(p) >= (HS_ndays_min - 0.1)) then
          heatwave_crop(p) = 1.0_r8
     else
          heatwave_crop(p) = 0.0_r8
