@@ -393,7 +393,7 @@ contains
              ! active pool to be the last one.
 
              ! added by SdR for heatstress
-             aloss_hs(p)    = (1._r8 - aroot(p) - astem(p) - aleaf(p)) * (1._r8 -  HS_factor(p))
+             aloss_hs(p)    = (1._r8 - aroot(p) - astem(p) - aleaf(p)) * HS_factor(p)
              aroot(p)       = aroot(p) + aloss_hs(p)
 
              do k = 1, nrepr-1

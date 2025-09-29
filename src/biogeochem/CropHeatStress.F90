@@ -118,15 +118,15 @@ contains
     !check  if stress occurs
     if (HS_ndays == day_min .and. croplive .and. t_veg_day > tcrit) then
        ! onset heatwave
-       HS_factor = 0.95
+       HS_factor = 0.05_r8
     else if (HS_ndays > day_min .and. croplive .and. t_veg_day > tcrit) then !previously >=tcrit
       if (t_veg_day < tmax ) then
-          HS_factor = 1._r8 - ((t_veg_day - tcrit)/((tmax+8)-tcrit))
+          HS_factor = 0.7_r8 * ((t_veg_day - tcrit)/(tmax-tcrit))
       else if (t_veg_day >= tmax) then
-          HS_factor = 0.4_r8  !1._r8 / ((tmax+8) - tcrit)
+          HS_factor = 0.7_r8
       end if
     else
-       HS_factor = 1._r8
+       HS_factor = 0._r8
     end if
 
 
