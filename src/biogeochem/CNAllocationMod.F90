@@ -284,6 +284,7 @@ contains
     integer :: p, fp, k
     real(r8) :: fleaf                                      ! fraction allocated to leaf
     real(r8) :: crop_phase(bounds%begp:bounds%endp)
+    real(r8) :: aloss_hs(bounds%begp:bounds%endp)          ! local temp variable for adjusting allocation from reproductive pool to root, based on heat stress
 
     character(len=*), parameter :: subname = 'calc_crop_allocation_fractions'
     !-----------------------------------------------------------------------
@@ -309,7 +310,8 @@ contains
          aleaf                 => cnveg_state_inst%aleaf_patch                      , & ! Output: [real(r8) (:)   ]  leaf allocation coefficient
          astem                 => cnveg_state_inst%astem_patch                      , & ! Output: [real(r8) (:)   ]  stem allocation coefficient
          aroot                 => cnveg_state_inst%aroot_patch                      , & ! Output: [real(r8) (:)   ]  root allocation coefficient
-         arepr                 => cnveg_state_inst%arepr_patch                        & ! Output: [real(r8) (:,:) ]  reproductive allocation coefficient(s)
+         arepr                 => cnveg_state_inst%arepr_patch                      , & ! Output: [real(r8) (:,:) ]  reproductive allocation coefficient(s)
+         HS_factor             => crop_inst%HS_factor_patch                           & ! Input:  [real(r8) (:) ]  heat stress factor ; added by SdR
          )
 
     call CropPhase(bounds, num_pcropp, filter_pcropp, crop_inst, cnveg_state_inst, &
@@ -389,10 +391,15 @@ contains
              ! reproductive pool with the AgroIBIS-based crop model, but for
              ! software testing we can have multiple, in which situation we want the
              ! active pool to be the last one.
+
+             ! added by SdR for heatstress
+             aloss_hs(p)    = (1._r8 - aroot(p) - astem(p) - aleaf(p)) * (1._r8 -  HS_factor(p))
+             aroot(p)       = aroot(p) + aloss_hs(p)
+
              do k = 1, nrepr-1
                 arepr(p,k) = 0._r8
              end do
-             arepr(p,nrepr) = 1._r8 - aroot(p) - astem(p) - aleaf(p)
+             arepr(p,nrepr) = 1._r8 - aroot(p) - astem(p) - aleaf(p) - aloss_hs(p)
 
           else if (crop_phase(p) == cphase_planted) then
              ! pre emergence
