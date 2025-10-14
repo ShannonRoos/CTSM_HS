@@ -310,8 +310,7 @@ contains
          aleaf                 => cnveg_state_inst%aleaf_patch                      , & ! Output: [real(r8) (:)   ]  leaf allocation coefficient
          astem                 => cnveg_state_inst%astem_patch                      , & ! Output: [real(r8) (:)   ]  stem allocation coefficient
          aroot                 => cnveg_state_inst%aroot_patch                      , & ! Output: [real(r8) (:)   ]  root allocation coefficient
-         arepr                 => cnveg_state_inst%arepr_patch                      , & ! Output: [real(r8) (:,:) ]  reproductive allocation coefficient(s)
-         HS_factor             => crop_inst%HS_factor_patch                           & ! Input:  [real(r8) (:) ]  heat stress factor ; added by SdR
+         arepr                 => cnveg_state_inst%arepr_patch                        & ! Output: [real(r8) (:,:) ]  reproductive allocation coefficient(s)
          )
 
     call CropPhase(bounds, num_pcropp, filter_pcropp, crop_inst, cnveg_state_inst, &
@@ -392,9 +391,6 @@ contains
              ! software testing we can have multiple, in which situation we want the
              ! active pool to be the last one.
 
-             ! added by SdR for heatstress
-             aloss_hs(p)    = (1._r8 - aroot(p) - astem(p) - aleaf(p)) * HS_factor(p)
-             aroot(p)       = aroot(p) + aloss_hs(p)
 
              do k = 1, nrepr-1
                 arepr(p,k) = 0._r8

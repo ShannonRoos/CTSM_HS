@@ -18,6 +18,8 @@ module  PhotosynthesisMod
   use clm_varctl          , only : iulog
   use clm_varpar          , only : nlevcan, nvegwcs, mxpft
   use clm_varcon          , only : c14ratio, spval, isecspday
+  use CNPhenologyMod      , only : CropPhase
+  use CropType            , only : cphase_grainfill
   use decompMod           , only : bounds_type, subgrid_level_patch
   use QuadraticMod        , only : quadratic
   use pftconMod           , only : pftcon
@@ -1257,6 +1259,7 @@ contains
     class(ozone_base_type) , intent(in)    :: ozone_inst
     type(photosyns_type)   , intent(inout) :: photosyns_inst
     character(len=*)       , intent(in)    :: phase                          ! 'sun' or 'sha'
+    real(r8)               , intent(int)   :: crop_phase(bounds%begp:)
 
     !
     ! !LOCAL VARIABLES:
@@ -1356,6 +1359,9 @@ contains
 
     real(r8) :: dtime                           ! land model time step (sec)
     integer  :: g                               ! index
+
+
+    real(r8) :: crop_phase(bounds%begp:bounds%endp)
     !------------------------------------------------------------------------------
 
     ! Temperature and soil water response functions
@@ -1791,6 +1797,14 @@ contains
 
             vcmax_z(p,iv) = vcmax_z(p,iv) * btran(p)
             lmr_z(p,iv) = lmr_z(p,iv) * btran(p)
+
+            ! added by SdR; adjust for extreme temperature:
+            if (crop(patch%itype(p)) == 1) then
+               call CropPhase(bounds, num_pcropp, filter_pcropp, crop_inst, cnveg_state_inst, &
+                    crop_phase = crop_phase(bounds%begp:bounds%endp))
+               if (crop_phase(p) == cphase_grainfill) then
+               vcmax_z(p, iv) = vcmax_z(p,iv) * max(0._r8,(1._r8 - HS_factor(p)))
+            end if
             
            ! Change to add in light inhibition of respiration. 0.67 from Lloyd et al. 2010, & Metcalfe et al. 2012 
            ! Also pers. comm from Peter Reich (Nov 2015). Might potentially be updated pending findings of Atkin et al. (in prep)
@@ -3435,7 +3449,13 @@ contains
                kp_z(p,sun,iv) = kp25_sun * 2._r8**((t_veg(p)-(tfrz+25._r8))/10._r8)
                kp_z(p,sha,iv) = kp25_sha * 2._r8**((t_veg(p)-(tfrz+25._r8))/10._r8)
 
+               ! added by SdR; adjust for extreme temperature:
+               if (crop_phase(p) == cphase_grainfill) then
+                  vcmax_z(p, iv) = vcmax_z(p,iv) * max(0.05_r8,(1._r8 - HS_factor(p)))
+               end if
+
             end if
+
 
            ! Change to add in light inhibition of respiration. 0.67 from Lloyd et al. 2010, & Metcalfe et al. 2012
            ! Also pers. comm from Peter Reich (Nov 2015). Might potentially be updated pending findings of Atkin et al. (in prep)
