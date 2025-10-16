@@ -1259,7 +1259,7 @@ contains
     class(ozone_base_type) , intent(in)    :: ozone_inst
     type(photosyns_type)   , intent(inout) :: photosyns_inst
     character(len=*)       , intent(in)    :: phase                          ! 'sun' or 'sha'
-    real(r8)               , intent(int)   :: crop_phase(bounds%begp:)
+   
 
     !
     ! !LOCAL VARIABLES:
@@ -1800,10 +1800,8 @@ contains
 
             ! added by SdR; adjust for extreme temperature:
             if (crop(patch%itype(p)) == 1) then
-               call CropPhase(bounds, num_pcropp, filter_pcropp, crop_inst, cnveg_state_inst, &
-                    crop_phase = crop_phase(bounds%begp:bounds%endp))
                if (crop_phase(p) == cphase_grainfill) then
-               vcmax_z(p, iv) = vcmax_z(p,iv) * max(0._r8,(1._r8 - HS_factor(p)))
+               vcmax_z(p, iv) = vcmax_z(p,iv) * max(0.05_r8,(1._r8 - HS_factor(p)))
             end if
             
            ! Change to add in light inhibition of respiration. 0.67 from Lloyd et al. 2010, & Metcalfe et al. 2012 
