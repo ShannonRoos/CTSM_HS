@@ -393,13 +393,17 @@ contains
              ! active pool to be the last one.
 
              ! added by SdR for heatstress
-             aloss_hs(p)    = (1._r8 - aroot(p) - astem(p) - aleaf(p)) * HS_factor(p)
-             aroot(p)       = min(1._r8, max(0._r8, aroot(p) + aloss_hs(p)))
+                          
+             if (HS_factor(p) > 0.0001_r8) then
+                 aloss_hs(p)   = min(0.05_r8, max(0._r8, (1._r8 - aroot(p) - astem(p) - aleaf(p)) * HS_factor(p)))
+                 aroot(p)      = max(0._r8, aroot(p) + aloss_hs(p))
+             end if
+             
 
              do k = 1, nrepr-1
                 arepr(p,k) = 0._r8
              end do
-             arepr(p,nrepr) = max(0._r8, (1._r8 - aroot(p) - astem(p) - aleaf(p)))
+             arepr(p,nrepr) = max(0._r8, 1._r8 - aroot(p) - astem(p) - aleaf(p))
 
           else if (crop_phase(p) == cphase_planted) then
              ! pre emergence
