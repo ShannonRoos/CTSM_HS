@@ -391,15 +391,11 @@ contains
              ! reproductive pool with the AgroIBIS-based crop model, but for
              ! software testing we can have multiple, in which situation we want the
              ! active pool to be the last one.
-
-             ! added by SdR for heatstress
-             aloss_hs(p)    = (1._r8 - aroot(p) - astem(p) - aleaf(p)) * HS_factor(p)
-             aroot(p)       = min(1._r8, max(0._r8, aroot(p) + aloss_hs(p)))
-
+             
              do k = 1, nrepr-1
                 arepr(p,k) = 0._r8
              end do
-             arepr(p,nrepr) = max(0._r8, (1._r8 - aroot(p) - astem(p) - aleaf(p)))
+             arepr(p,nrepr) = (1._r8 - aroot(p) - astem(p) - aleaf(p))
 
           else if (crop_phase(p) == cphase_planted) then
              ! pre emergence
