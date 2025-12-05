@@ -3591,23 +3591,6 @@ contains
                              + repr_grainn_to_seed_perharv(p,h,k)
                      end if
 
-                     ! Send the remaining grain to the food product pool
-                     ! ! test crepr: added by SdR
-                     ! if (HS_factor <1._r8) then
-                     !    !carbon
-                     !    cpool_to_reproductivec_hs   = cpool_to_reproductivec(p,k) * HS_factor(p)
-                     !    crepr_residual_hs(p,k)      = cpool_to_reproductivec(p,k) - cpool_to_reproductivec_hs
-                     !    cpool_to_reproductivec(p,k) = cpool_to_reproductivec_hs
-                     !    !nitrogen
-                     !    npool_to_reproductiven_hs   = npool_to_reproductiven(p,k) * HS_factor(p)
-                     !    nrepr_residual_hs(p,k)      = npool_to_reproductiven(p,k) - npool_to_reproductiven_hs
-                     !    npool_to_reproductiven(p,k) = npool_to_reproductiven_hs
-                     ! elseif ( HS_factor= 1._r8 ) then
-                     !    crepr_residual_hs(p,k)            = 0._r8
-                     !    nrepr_residual_hs(p,k)            = 0._r8
-                     !    !need to create new pool: grainc_to_litter, grainn_to_litter
-                     ! end if
-
                      repr_grainc_to_food_thispool = cpool_to_reproductivec(p,k) - repr_grainc_to_seed(p,k)
                      repr_grainc_to_food(p,k) = t1 * reproductivec(p,k) &
                           + repr_grainc_to_food_thispool
