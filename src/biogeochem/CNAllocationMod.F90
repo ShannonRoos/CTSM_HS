@@ -394,8 +394,8 @@ contains
 
              ! added by SdR for heatstress
                           
-             if (HS_factor(p) > 0.0001_r8) then
-                 aloss_hs(p)   = min(0.05_r8, max(0._r8, (1._r8 - aroot(p) - astem(p) - aleaf(p)) * HS_factor(p)))
+             if (HS_factor(p) > 0.005_r8) then
+                 aloss_hs(p)   = min(0.5_r8, max(0._r8, (1._r8 - aroot(p) - astem(p) - aleaf(p)) * HS_factor(p)))
                  aroot(p)      = max(0._r8, aroot(p) + aloss_hs(p))
              end if
              

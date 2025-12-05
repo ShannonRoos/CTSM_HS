@@ -28,7 +28,7 @@ module CropHeatStress
 
   !
   ! !PUBLIC FOR UNIT TESTING
-  real(r8), public, parameter :: tcrit = 303.15_r8
+  real(r8), public, parameter :: tcrit = 300.15_r8
   real(r8), public, parameter :: tmax = 313.15_r8
   real(r8), public, parameter :: HS_ndays_min = 3._r8
 
@@ -118,12 +118,12 @@ contains
     !check  if stress occurs
     if (HS_ndays == day_min .and. croplive .and. t_veg_day > tcrit) then
        ! onset heatwave
-       HS_factor = 0.0011_r8
+       HS_factor = 0.01_r8
     else if (HS_ndays > day_min .and. croplive .and. t_veg_day > tcrit) then !previously >=tcrit
       if (t_veg_day < tmax ) then
-          HS_factor = 0.005_r8 * ((t_veg_day - tcrit)/(tmax-tcrit))
+          HS_factor = 0.7_r8 * ((t_veg_day - tcrit)/(tmax-tcrit))
       else if (t_veg_day >= tmax) then
-          HS_factor = 0.005_r8
+          HS_factor = 0.7_r8
       end if
     else
        HS_factor = 0._r8
