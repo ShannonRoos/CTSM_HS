@@ -2016,7 +2016,7 @@ contains
     use clm_time_manager , only : get_prev_date
     use clm_time_manager , only : is_doy_in_interval, is_end_curr_day, is_beg_curr_day
     use clm_time_manager , only : get_doy_tomorrow
-    use CropHeatStress   , only : crop_heatstress_reset, crop_heatstress_ndays, calc_HS_factor     !added by SdR
+    use CropHeatStress   , only : crop_heatstress_reset, crop_heatstress_ndays, calc_HS_factor,TVDAY_peak, check_min_TVpeak_years    !added by SdR
     use pftconMod        , only : ntmp_corn, nswheat, nwwheat, ntmp_soybean
     use pftconMod        , only : nirrig_tmp_corn, nirrig_swheat, nirrig_wwheat, nirrig_tmp_soybean
     use pftconMod        , only : ntrp_corn, nsugarcane, ntrp_soybean, ncotton, nrice
@@ -2115,6 +2115,8 @@ contains
          HS_ndays          =>    crop_inst%HS_ndays_patch                      , & ! Input:  [real(r8) (:) ]  number of crop heat stressed days; added by SdR
          HS_factor         =>    crop_inst%HS_factor_patch                     , & ! Input:  [real(r8) (:) ]  heat stress factor ; added by SdR
          heatwave_crop     =>    crop_inst%heatwave_crop_patch                 , & ! Input:  [real(r8) (:) ]  check if heatwave condition is true; added by SdR
+         peakTVDAY         =>    crop_inst%peakTVDAY_patch                     , & ! Input:  [real(r8) (:) ]  peak vegetation daytime temperature ; added by SdR
+         peakTVDAY_years   =>    crop_inst%peakTVDAY_years_patch               , & ! Input:  [real(r8) (:) ]  peak vegetation daytime temperature over simulation years; added by SdR
          peaklai           =>    cnveg_state_inst%peaklai_patch                , & ! Output: [integer  (:) ]  1: max allowed lai; 0: not at max
          tlai              =>    canopystate_inst%tlai_patch                   , & ! Input:  [real(r8) (:) ]  one-sided leaf area index, no burying by snow     
          
@@ -2164,8 +2166,9 @@ contains
 
          ! added by SdR
          if (is_beg_curr_day()) then
-            call crop_heatstress_ndays(HS_ndays(p), heatwave_crop(p), t_veg_day(p), croplive(p))
-            call calc_HS_factor(HS_factor(p), HS_ndays(p), t_veg_day(p),  croplive(p))
+            call crop_heatstress_ndays(HS_ndays(p), heatwave_crop(p), t_veg_day(p), croplive(p),peakTVDAY_years(p))
+            call calc_HS_factor(HS_factor(p), HS_ndays(p), t_veg_day(p),  croplive(p),peakTVDAY_years(p))
+            call TVDAY_peak(peakTVDAY(p), t_veg_day(p), croplive(p))
          end if
 
          ! background litterfall and transfer rates; long growing season factor
@@ -2569,6 +2572,9 @@ contains
                   crop_inst%sowing_reason_perharv_patch(p, harvest_count(p)) = real(crop_inst%sowing_reason_patch(p), r8)
                   crop_inst%sowing_reason_patch(p) = -1 ! "Reason for most recent sowing of this patch." So in the line above we save, and here we reset.
                   crop_inst%harvest_reason_thisyr_patch(p, harvest_count(p)) = harvest_reason
+
+                  !added by SdR to check clim TV
+                  call check_min_TVpeak_years(peakTVDAY_years(p),peakTVDAY(p))
                endif
 
                ! Reset heat-stress variables

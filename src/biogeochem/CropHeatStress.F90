@@ -22,13 +22,15 @@ module CropHeatStress
   private
   !
   ! !PUBLIC MEMBER FUNCTIONS:
-  public  :: crop_heatstress_ndays       ! SdR: checks for number of days above Tcrit for crop heat stress
+  public  :: crop_heatstress_ndays       ! SdR: checks for number of days above tcrit for crop heat stress
   public  :: calc_HS_factor              ! SdR: calculates heat stress magnitude affecting leaf area decline (grainfill phase)
-  public  :: crop_heatstress_reset 
+  public  :: crop_heatstress_reset       ! Unsets variables related to crop heat stress
+  public  :: TVDAY_peak
+  public  :: check_min_TVpeak_years
 
   !
   ! !PUBLIC FOR UNIT TESTING
-  real(r8), public, parameter :: tcrit = 302.15_r8
+  real(r8), public, parameter :: tcrit_min = 397.15_r8
   real(r8), public, parameter :: tmax = 318.15_r8
   real(r8), public, parameter :: HS_ndays_min = 3._r8
 
@@ -53,7 +55,7 @@ contains
   end subroutine crop_heatstress_reset
 
   !------------------------------------------------------------------------
-  subroutine crop_heatstress_ndays(HS_ndays, heatwave_crop, t_veg_day, croplive)
+  subroutine crop_heatstress_ndays(HS_ndays, heatwave_crop, t_veg_day, croplive, peakTVDAY_years)
 
     ! !DESCRIPTION:
     ! added by SdR for heat stress implementation
@@ -64,9 +66,15 @@ contains
     real(r8),        intent(inout)    :: HS_ndays              ! number of crop heat stress days (ndays) should be integer at final implementation
     real(r8),        intent(inout)    :: heatwave_crop         ! keep track if heatwave is activated
     real(r8),        intent(in)       :: t_veg_day
+    real(r8),        intent(in)       :: peakTVDAY_years       ! peak vegetation temperature, minimum over simulated year (Kelvin)
     logical,         intent(in)       :: croplive              ! crop between sowing and harvest
 
+    ! !LOCAL VARIABLES:
+    real(r8)   :: tcrit
+
+
     !----------------------------------------------------------------------
+    tcrit = peakTVDAY_years
 
     ! No heat stress if crop isn't alive
     if (.not. croplive) then
@@ -80,7 +88,7 @@ contains
     end if
 
     ! check if tcrit is exceeded and count days
-    if (t_veg_day >= tcrit) then
+    if (t_veg_day >= tcrit .and. tcrit>=tcrit_min) then
          HS_ndays = HS_ndays + 1.0_r8
     else
          HS_ndays = 0.0_r8
@@ -96,7 +104,7 @@ contains
   end subroutine crop_heatstress_ndays
 
 
-  subroutine calc_HS_factor(HS_factor, HS_ndays, t_veg_day, croplive)
+  subroutine calc_HS_factor(HS_factor, HS_ndays, t_veg_day, croplive,peakTVDAY_years)
 
     ! !DESCRIPTION:
     ! function to calculate heat stress instensity by applying a factor to bglfr (increasing LAI decline). function based on Apsim-Nwheat model Asseng et al. 2011:https://doi.org/10.1111/j.1365-2486.2010.02262.x
@@ -106,31 +114,64 @@ contains
     real(r8),        intent(inout)     :: HS_factor         ! keep track if heatwave is activated
     real(r8),        intent(in)        :: HS_ndays          ! number of crop heat stress days (ndays) should be integer at final implementation
     real(r8),        intent(in)        :: t_veg_day         ! daily vegetation temperature (Kelvin)
-    logical,         intent(in)        :: croplive              ! crop between sowing and harvest
+    real(r8),        intent(in)        :: peakTVDAY_years   ! peak vegetation temperature, minimum over simulated year (Kelvin)
+    logical,         intent(in)        :: croplive          ! crop between sowing and harvest
 
     ! !LOCAL VARIABLES:
     integer  :: day_min
+    real(r8) :: tcrit
 
     !-----------------------------------------------------------------------
 
     day_min = 3
+    tcrit   = peakTVDAY_years
 
     !check  if stress occurs
-    if (HS_ndays == day_min .and. croplive .and. t_veg_day >= tcrit) then
+    if (HS_ndays == day_min .and. croplive .and. t_veg_day >= tcrit .and. tcrit>=tcrit_min) then
        ! onset heatwave
-       HS_factor = 1.5_r8
-    else if (HS_ndays > day_min .and. croplive .and. t_veg_day >= tcrit) then
+       HS_factor = 3._r8
+    else if (HS_ndays > day_min .and. croplive .and. t_veg_day >= tcrit .and. tcrit>=tcrit_min) then
       if (t_veg_day <= tmax ) then
           HS_factor = 4 - (1 - (t_veg_day - tcrit)/2)
       else
-          HS_factor = 11._r8
+          HS_factor = 15._r8
       end if
     else
        HS_factor = 1._r8
     end if
 
 
-  end subroutine calc_HS_factor 
+  end subroutine calc_HS_factor
+
+  subroutine TVDAY_peak(peakTVDAY, t_veg_day, croplive)
+    ! !DESCRIPTION:
+    ! Keeps track of maximum vegetation temperature when crop is alive
+    ! !ARGUMENTS:
+    real(r8),        intent(in)        :: t_veg_day   ! daily vegetation temperature (Kelvin)
+    real(r8),        intent(inout)     :: peakTVDAY   ! peak vegetation temperature during crop growing season (Kelvin)
+    logical,         intent(in)        :: croplive    ! crop between sowing and harvest
+
+    if (croplive) then
+      peakTVDAY = max(t_veg_day, peakTVDAY)
+    end if
+
+  end subroutine TVDAY_peak
+
+  subroutine check_min_TVpeak_years(peakTVDAY_years,peakTVDAY)
+    ! !DESCRIPTION:
+    ! Keeps track of mminimum TVDAY_peak during simulation years: maximum daytime vegetation
+    ! temperature during growing season that occurs at least once every year
+    ! !ARGUMENTS:
+    real(r8),        intent(inout)  :: peakTVDAY_years  ! peak daily vegetation temperature over simulation years (Kelvin)
+    real(r8),        intent(in)     :: peakTVDAY        ! peak daily vegetation temperature during crop growing season (Kelvin)
+
+    if (peakTVDAY_years > 0._r8) then
+      peakTVDAY_years = min(peakTVDAY_years, peakTVDAY)
+    else
+      peakTVDAY_years = peakTVDAY
+    end if
+
+  end subroutine check_min_TVpeak_years
 
 
 end module CropHeatStress

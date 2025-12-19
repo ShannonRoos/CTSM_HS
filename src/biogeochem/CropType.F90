@@ -76,8 +76,10 @@ module CropType
      ! added by SdR as part of HS implementation (20-08-24)
      real(r8) , pointer :: HS_ndays_patch           (:)   ! patch day count for heat stress
      real(r8) , pointer :: heatwave_crop_patch      (:)   ! check if heatwave is activated
-     real(r8) , pointer :: HS_factor_patch          (:)   ! patch day count for heat stress
-
+     real(r8) , pointer :: HS_factor_patch          (:)   ! patch day heat stress factor
+     ! added by SdR as part of climatology-based Tcrit (17-12-25)
+     real(r8) , pointer :: peakTVDAY_patch  (:)   ! peak daytime vegetation temperature during crop growing season
+     real(r8) , pointer :: peakTVDAY_years_patch  (:)   ! peak daytime vegetation temperature during crop growing season for simulation years
    contains
      ! Public routines
      procedure, public  :: Init               ! Initialize the crop type
@@ -263,6 +265,8 @@ contains
     allocate(this%HS_ndays_patch           (begp:endp))                      ; this%HS_ndays_patch           (:)   = 0.0_r8
     allocate(this%heatwave_crop_patch      (begp:endp))                      ; this%heatwave_crop_patch      (:)   = 0.0_r8
     allocate(this%HS_factor_patch          (begp:endp))                      ; this%HS_factor_patch          (:)   = 1.0_r8
+    allocate(this%peakTVDAY_patch          (begp:endp))                      ; this%peakTVDAY_patch          (:)   = -1.0_r8
+    allocate(this%peakTVDAY_years_patch    (begp:endp))                      ; this%peakTVDAY_years_patch    (:)   = -1.0_r8
 
   end subroutine InitAllocate
 
@@ -388,6 +392,16 @@ contains
     call hist_addfld1d (fname='HSF', units='unitless', &
          avgflag='A', long_name='crop stress factor', &
          ptr_patch=this%HS_factor_patch, default='inactive')
+
+    this%peakTVDAY_patch(begp:endp) = spval
+    call hist_addfld1d (fname='PEAKTVDAY', units='Kelvin', &
+         avgflag='A', long_name='peak temperature of TVDAY', &
+         ptr_patch=this%peakTVDAY_patch, default='inactive')
+    this%peakTVDAY_years_patch(begp:endp) = spval
+    call hist_addfld1d (fname='PEAKTVDAY_YRS', units='Kelvin', &
+         avgflag='A', long_name='minimum peak temperature of TVDAY over simulation years', &
+         ptr_patch=this%peakTVDAY_years_patch, default='inactive')
+          
 
     this%gdd20_baseline_patch(begp:endp) = spval
     call hist_addfld1d (fname='GDD20_BASELINE', units='ddays', &
@@ -669,6 +683,14 @@ contains
             dim1name='pft', long_name='heat stress factor', &
             units='unitless', &
             interpinic_flag='interp', readvar=readvar, data=this%HS_factor_patch)
+       call restartvar(ncid=ncid, flag=flag,  varname='peakTVDAY_patch',xtype=ncd_double, &
+            dim1name='pft', long_name='peak temperature of TVDAY', &
+            units='Kelvin', &
+            interpinic_flag='interp', readvar=readvar, data=this%peakTVDAY_patch)
+       call restartvar(ncid=ncid, flag=flag,  varname='peakTVDAY_years_patch',xtype=ncd_double, &
+            dim1name='pft', long_name='minimum peak temperature of TVDAY over simulation years', &
+            units='Kelvin', &
+            interpinic_flag='interp', readvar=readvar, data=this%peakTVDAY_years_patch)
 
        call restartvar(ncid=ncid, flag=flag,  varname='harvdate', xtype=ncd_int,  &
             dim1name='pft', long_name='harvest date', units='jday', nvalid_range=(/1,366/), &
