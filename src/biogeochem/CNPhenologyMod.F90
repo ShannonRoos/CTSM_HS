@@ -2016,7 +2016,7 @@ contains
     use clm_time_manager , only : get_prev_date
     use clm_time_manager , only : is_doy_in_interval, is_end_curr_day, is_beg_curr_day
     use clm_time_manager , only : get_doy_tomorrow
-    use CropHeatStress   , only : crop_heatstress_reset, crop_heatstress_ndays, calc_HS_factor,TVDAY_peak, check_min_TVpeak_years    !added by SdR
+    use CropHeatStress   , only : crop_heatstress_reset, crop_heatstress_ndays, calc_HS_factor,calc_TVDAY_peak, check_min_TVpeak_years    !added by SdR
     use pftconMod        , only : ntmp_corn, nswheat, nwwheat, ntmp_soybean
     use pftconMod        , only : nirrig_tmp_corn, nirrig_swheat, nirrig_wwheat, nirrig_tmp_soybean
     use pftconMod        , only : ntrp_corn, nsugarcane, ntrp_soybean, ncotton, nrice
@@ -2168,7 +2168,7 @@ contains
          if (is_beg_curr_day()) then
             call crop_heatstress_ndays(HS_ndays(p), heatwave_crop(p), t_veg_day(p), croplive(p),peakTVDAY_years(p))
             call calc_HS_factor(HS_factor(p), HS_ndays(p), t_veg_day(p),  croplive(p),peakTVDAY_years(p))
-            call TVDAY_peak(peakTVDAY(p), t_veg_day(p), croplive(p))
+            call calc_TVDAY_peak(peakTVDAY(p), t_veg_day(p), croplive(p))
          end if
 
          ! background litterfall and transfer rates; long growing season factor

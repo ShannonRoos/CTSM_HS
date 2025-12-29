@@ -25,7 +25,7 @@ module CropHeatStress
   public  :: crop_heatstress_ndays       ! SdR: checks for number of days above tcrit for crop heat stress
   public  :: calc_HS_factor              ! SdR: calculates heat stress magnitude affecting leaf area decline (grainfill phase)
   public  :: crop_heatstress_reset       ! Unsets variables related to crop heat stress
-  public  :: TVDAY_peak
+  public  :: calc_TVDAY_peak
   public  :: check_min_TVpeak_years
 
   !
@@ -143,19 +143,19 @@ contains
 
   end subroutine calc_HS_factor
 
-  subroutine TVDAY_peak(peakTVDAY, t_veg_day, croplive)
+  subroutine calc_TVDAY_peak(peakTVDAY, t_veg_day, croplive)
     ! !DESCRIPTION:
     ! Keeps track of maximum vegetation temperature when crop is alive
     ! !ARGUMENTS:
-    real(r8),        intent(in)        :: t_veg_day   ! daily vegetation temperature (Kelvin)
     real(r8),        intent(inout)     :: peakTVDAY   ! peak vegetation temperature during crop growing season (Kelvin)
+    real(r8),        intent(in)        :: t_veg_day   ! daily vegetation temperature (Kelvin)
     logical,         intent(in)        :: croplive    ! crop between sowing and harvest
 
-    if (croplive) then
-      peakTVDAY = max(t_veg_day, peakTVDAY)
+    if (croplive .and. t_veg_day > peakTVDAY) then ! add .and. ((crop_phase == cphase_leafemerge) .or. (crop_phase == cphase_grainfill))
+      peakTVDAY = t_veg_day
     end if
 
-  end subroutine TVDAY_peak
+  end subroutine calc_TVDAY_peak
 
   subroutine check_min_TVpeak_years(peakTVDAY_years,peakTVDAY)
     ! !DESCRIPTION:
@@ -165,8 +165,12 @@ contains
     real(r8),        intent(inout)  :: peakTVDAY_years  ! peak daily vegetation temperature over simulation years (Kelvin)
     real(r8),        intent(in)     :: peakTVDAY        ! peak daily vegetation temperature during crop growing season (Kelvin)
 
-    if (peakTVDAY_years > 0._r8) then
-      peakTVDAY_years = min(peakTVDAY_years, peakTVDAY)
+    if (peakTVDAY_years > 5._r8) then
+      if (peakTVDAY_years <= peakTVDAY) then
+        peakTVDAY_years = peakTVDAY_years
+      else
+        peakTVDAY_years = peakTVDAY
+      end if
     else
       peakTVDAY_years = peakTVDAY
     end if
