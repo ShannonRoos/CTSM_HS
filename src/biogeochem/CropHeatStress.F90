@@ -28,9 +28,9 @@ module CropHeatStress
   public  :: calc_TVDAY_peak
   public  :: check_min_TVpeak_years
 
-  !
+  !S
   ! !PUBLIC FOR UNIT TESTING
-  real(r8), public, parameter :: tcrit_min = 397.15_r8
+  real(r8), public, parameter :: tcrit_min = 297.15_r8
   real(r8), public, parameter :: tmax = 318.15_r8
   real(r8), public, parameter :: HS_ndays_min = 3._r8
 
@@ -161,11 +161,12 @@ contains
     ! !DESCRIPTION:
     ! Keeps track of mminimum TVDAY_peak during simulation years: maximum daytime vegetation
     ! temperature during growing season that occurs at least once every year
+    ! also resets peakTVDAY to initial value, to start calc_TVDAY_peak in the new growing season from scratch
     ! !ARGUMENTS:
     real(r8),        intent(inout)  :: peakTVDAY_years  ! peak daily vegetation temperature over simulation years (Kelvin)
-    real(r8),        intent(in)     :: peakTVDAY        ! peak daily vegetation temperature during crop growing season (Kelvin)
+    real(r8),        intent(inout)  :: peakTVDAY        ! peak daily vegetation temperature during crop growing season (Kelvin)
 
-    if (peakTVDAY_years > 5._r8) then
+    if (peakTVDAY_years > 1._r8) then
       if (peakTVDAY_years <= peakTVDAY) then
         peakTVDAY_years = peakTVDAY_years
       else
@@ -174,6 +175,8 @@ contains
     else
       peakTVDAY_years = peakTVDAY
     end if
+
+    peakTVDAY = 1._r8
 
   end subroutine check_min_TVpeak_years
 
