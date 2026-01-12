@@ -132,7 +132,7 @@ contains
        HS_factor = 3._r8
     else if (HS_ndays > day_min .and. croplive .and. t_veg_day >= tcrit .and. tcrit>=tcrit_min) then
       if (t_veg_day <= tmax ) then
-          HS_factor = 4 - (1 - (t_veg_day - tcrit)/2)
+          HS_factor = 4 - (1 - (t_veg_day - tcrit_min)/2)
       else
           HS_factor = 15._r8
       end if
