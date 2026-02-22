@@ -265,7 +265,7 @@ contains
     ! added by SdR as part of heat stress implementation (22-08-24)
     allocate(this%HS_ndays_patch           (begp:endp))                      ; this%HS_ndays_patch           (:)   = 0.0_r8
     allocate(this%heatwave_crop_patch      (begp:endp))                      ; this%heatwave_crop_patch      (:)   = 0.0_r8
-    allocate(this%HS_factor_patch          (begp:endp))                      ; this%HS_factor_patch          (:)   = 0.0_r8
+    allocate(this%HS_factor_patch          (begp:endp))                      ; this%HS_factor_patch          (:)   = 1.0_r8
     allocate(this%peakTVDAY_patch          (begp:endp))                      ; this%peakTVDAY_patch          (:)   = 1.0_r8
     allocate(this%peakTVDAY_years_patch    (begp:endp))                      ; this%peakTVDAY_years_patch    (:)   = 1.0_r8
     allocate(this%npeakyears_patch         (begp:endp))                      ; this%npeakyears_patch         (:)   = 0

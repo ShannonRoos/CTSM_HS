@@ -2614,7 +2614,7 @@ contains
 
             else if (hui(p) >= huigrain(p)) then
                cphase(p) = cphase_grainfill
-               bglfr(p) = (1._r8/(leaf_long(ivt(p))*avg_dayspyr*secspday))
+               bglfr(p) = (1._r8/(leaf_long(ivt(p))*avg_dayspyr*secspday)) * HS_factor(p) ! added by SdR for heat stress in LAI senescence
             end if
 
             ! continue fertilizer application while in phase 2;

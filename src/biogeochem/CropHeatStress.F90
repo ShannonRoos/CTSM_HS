@@ -74,10 +74,10 @@ contains
 
 
     !----------------------------------------------------------------------
-    if ((peakTVDAY_years + 2._r8) < tcrit_min) then
-       tcrit = tcrit_min
-    else
-       tcrit = peakTVDAY_years + 2._r8
+    tcrit  = peakTVDAY_years + 2._r8
+
+    if (tcrit < tcrit_min) then
+      tcrit = tcrit_min
     end if
 
     ! No heat stress if crop isn't alive
@@ -123,7 +123,7 @@ contains
 
     ! !LOCAL VARIABLES:
     integer  :: day_min
-    real(r8) :: tcrit, tmax
+    real(r8) :: tcrit, tmax, flai_slope
 
     !-----------------------------------------------------------------------
 
@@ -132,30 +132,38 @@ contains
 
     if (tcrit < tcrit_min) then
       tcrit = tcrit_min
-    else if (tcrit <= 307.15_r8) then
+    end if
+
+    if (tcrit <= 307.15_r8) then
       tmax = tcrit + 15._r8
+      flai_slope = 3._r8
     else if (tcrit <= 313.15_r8) then
       tmax = tcrit + 10._r8
+      flai_slope = 2._r8
     else if (tcrit <= 317.15_r8) then
       tmax = (tcrit + 6._r8)
+      flai_slope = 1._r8
     else if (tcrit > 317.15_r8) then
       tmax = 323.15_r8
+      flai_slope = 1._r8
     end if
 
     !check  if stress occurs
     if (HS_ndays == day_min .and. croplive .and. t_veg_day > tcrit .and. t_veg_day > tcrit_min) then
        ! onset heatwave
-       !HS_factor = 3._r8
-       HS_factor = 0.05_r8
+       !HS_factor = 0.05_r8  ! rep
+       HS_factor = 0.5_r8    ! lai
     else if (HS_ndays > day_min .and. croplive .and. t_veg_day > tcrit .and. t_veg_day > tcrit_min) then
       if (t_veg_day <= tmax ) then
-          !HS_factor = 4 - (1 - (t_veg_day - tcrit)/2)
-          HS_factor = 0.9_r8 * ((t_veg_day - tcrit)/(tmax-tcrit))
+          !HS_factor = 0.9_r8 * ((t_veg_day - tcrit)/(tmax-tcrit))   ! rep
+          HS_factor = 0.5_r8 - (1._r8 - (t_veg_day - tcrit)/ flai_slope)   ! lai
       else
-          HS_factor = 0.9_r8
+          !HS_factor = 0.9_r8  ! rep
+          HS_factor = 5.5_r8   ! lai
       end if
     else
-       HS_factor = 0._r8
+       !HS_factor = 0._r8  ! rep
+       HS_factor = 1._r8  ! lai
     end if
 
 
