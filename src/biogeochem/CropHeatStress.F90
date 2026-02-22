@@ -136,27 +136,27 @@ contains
 
     if (tcrit <= 307.15_r8) then
       tmax = tcrit + 15._r8
-      flai_slope = 3._r8
+      flai_slope = 0.6_r8  !6.5:3._r8, 14:1.2_r8, 26.5:0.6_r8
     else if (tcrit <= 313.15_r8) then
       tmax = tcrit + 10._r8
-      flai_slope = 2._r8
+      flai_slope = 0.4_r8  !6.5:2._r8, 14:0.8_r8, 26.5:0.4_r8
     else if (tcrit <= 317.15_r8) then
       tmax = (tcrit + 6._r8)
-      flai_slope = 1._r8
+      flai_slope = 0.2_r8  !6.5:1._r8, 14:0.4_r8, 26.5:0.2_r8
     else if (tcrit > 317.15_r8) then
-      tmax = 323.15_r8
-      flai_slope = 1._r8
+      tmax = 323.15_r8    !6.5:1._r8, 14:0.4_r8, 26.5:0.2_r8
+      flai_slope = 0.2_r8
     end if
 
     !check  if stress occurs
     if (HS_ndays == day_min .and. croplive .and. t_veg_day > tcrit .and. t_veg_day > tcrit_min) then
        ! onset heatwave
        !HS_factor = 0.05_r8  ! rep
-       HS_factor = 0.5_r8    ! lai
+       HS_factor = 1.5_r8    ! lai
     else if (HS_ndays > day_min .and. croplive .and. t_veg_day > tcrit .and. t_veg_day > tcrit_min) then
       if (t_veg_day <= tmax ) then
           !HS_factor = 0.9_r8 * ((t_veg_day - tcrit)/(tmax-tcrit))   ! rep
-          HS_factor = 0.5_r8 - (1._r8 - (t_veg_day - tcrit)/ flai_slope)   ! lai
+          HS_factor = 2.5_r8 - (1._r8 - ((t_veg_day - tcrit) / flai_slope))   ! lai
       else
           !HS_factor = 0.9_r8  ! rep
           HS_factor = 5.5_r8   ! lai
