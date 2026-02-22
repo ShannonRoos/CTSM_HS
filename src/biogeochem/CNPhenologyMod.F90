@@ -2117,6 +2117,7 @@ contains
          heatwave_crop     =>    crop_inst%heatwave_crop_patch                 , & ! Input:  [real(r8) (:) ]  check if heatwave condition is true; added by SdR
          peakTVDAY         =>    crop_inst%peakTVDAY_patch                     , & ! Input:  [real(r8) (:) ]  peak vegetation daytime temperature ; added by SdR
          peakTVDAY_years   =>    crop_inst%peakTVDAY_years_patch               , & ! Input:  [real(r8) (:) ]  peak vegetation daytime temperature over simulation years; added by SdR
+         npeakyears        =>    crop_inst%npeakyears_patch                    , & ! Input:  [integer  (:) ]  number of peak years
          peaklai           =>    cnveg_state_inst%peaklai_patch                , & ! Output: [integer  (:) ]  1: max allowed lai; 0: not at max
          tlai              =>    canopystate_inst%tlai_patch                   , & ! Input:  [real(r8) (:) ]  one-sided leaf area index, no burying by snow     
          
@@ -2574,7 +2575,7 @@ contains
                   crop_inst%harvest_reason_thisyr_patch(p, harvest_count(p)) = harvest_reason
 
                   !added by SdR to check clim TV
-                  call check_min_TVpeak_years(peakTVDAY_years(p),peakTVDAY(p))
+                  call check_min_TVpeak_years(peakTVDAY_years(p),peakTVDAY(p),npeakyears(p))
                endif
 
                ! Reset heat-stress variables

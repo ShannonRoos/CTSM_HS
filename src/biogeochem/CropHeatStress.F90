@@ -30,8 +30,8 @@ module CropHeatStress
 
   !S
   ! !PUBLIC FOR UNIT TESTING
-  real(r8), public, parameter :: tcrit_min = 297.15_r8
-  real(r8), public, parameter :: tmax = 318.15_r8
+  real(r8), public, parameter :: tcrit_min = 296.15_r8 !23 degrees celcius
+  !real(r8), public, parameter :: tmax = 318.15_r8
   real(r8), public, parameter :: HS_ndays_min = 3._r8
 
   character(len=*), parameter, private :: sourcefile = &
@@ -74,7 +74,11 @@ contains
 
 
     !----------------------------------------------------------------------
-    tcrit = peakTVDAY_years
+    if ((peakTVDAY_years + 2._r8) < tcrit_min) then
+       tcrit = tcrit_min
+    else
+       tcrit = peakTVDAY_years + 2._r8
+    end if
 
     ! No heat stress if crop isn't alive
     if (.not. croplive) then
@@ -88,7 +92,7 @@ contains
     end if
 
     ! check if tcrit is exceeded and count days
-    if (t_veg_day >= tcrit .and. tcrit>=tcrit_min) then
+    if (t_veg_day >= tcrit .and. t_veg_day >= tcrit_min) then
          HS_ndays = HS_ndays + 1.0_r8
     else
          HS_ndays = 0.0_r8
@@ -119,25 +123,39 @@ contains
 
     ! !LOCAL VARIABLES:
     integer  :: day_min
-    real(r8) :: tcrit
+    real(r8) :: tcrit, tmax
 
     !-----------------------------------------------------------------------
 
     day_min = 3
-    tcrit   = peakTVDAY_years
+    tcrit  = peakTVDAY_years + 2._r8
+
+    if (tcrit < tcrit_min) then
+      tcrit = tcrit_min
+    else if (tcrit <= 307.15_r8) then
+      tmax = tcrit + 15._r8
+    else if (tcrit <= 313.15_r8) then
+      tmax = tcrit + 10._r8
+    else if (tcrit <= 317.15_r8) then
+      tmax = (tcrit + 6._r8)
+    else if (tcrit > 317.15_r8) then
+      tmax = 323.15_r8
+    end if
 
     !check  if stress occurs
-    if (HS_ndays == day_min .and. croplive .and. t_veg_day >= tcrit .and. tcrit>=tcrit_min) then
+    if (HS_ndays == day_min .and. croplive .and. t_veg_day > tcrit .and. t_veg_day > tcrit_min) then
        ! onset heatwave
-       HS_factor = 3._r8
-    else if (HS_ndays > day_min .and. croplive .and. t_veg_day >= tcrit .and. tcrit>=tcrit_min) then
+       !HS_factor = 3._r8
+       HS_factor = 0.05_r8
+    else if (HS_ndays > day_min .and. croplive .and. t_veg_day > tcrit .and. t_veg_day > tcrit_min) then
       if (t_veg_day <= tmax ) then
-          HS_factor = 4 - (1 - (t_veg_day - tcrit_min)/2)
+          !HS_factor = 4 - (1 - (t_veg_day - tcrit)/2)
+          HS_factor = 0.9_r8 * ((t_veg_day - tcrit)/(tmax-tcrit))
       else
-          HS_factor = 15._r8
+          HS_factor = 0.9_r8
       end if
     else
-       HS_factor = 1._r8
+       HS_factor = 0._r8
     end if
 
 
@@ -157,25 +175,36 @@ contains
 
   end subroutine calc_TVDAY_peak
 
-  subroutine check_min_TVpeak_years(peakTVDAY_years,peakTVDAY)
+  subroutine check_min_TVpeak_years(peakTVDAY_years,peakTVDAY, npeakyears)
     ! !DESCRIPTION:
+    ! called at the end of the growing season, which is assumed to be once a year
     ! Keeps track of mminimum TVDAY_peak during simulation years: maximum daytime vegetation
     ! temperature during growing season that occurs at least once every year
     ! also resets peakTVDAY to initial value, to start calc_TVDAY_peak in the new growing season from scratch
     ! !ARGUMENTS:
     real(r8),        intent(inout)  :: peakTVDAY_years  ! peak daily vegetation temperature over simulation years (Kelvin)
     real(r8),        intent(inout)  :: peakTVDAY        ! peak daily vegetation temperature during crop growing season (Kelvin)
+    integer,         intent(inout)  :: npeakyears       ! keep track of number of updates only update for first 5 years
+        
+    ! !LOCAL VARIABLES:
+    integer  :: max_nyears
 
-    if (peakTVDAY_years > 1._r8) then
-      if (peakTVDAY_years <= peakTVDAY) then
-        peakTVDAY_years = peakTVDAY_years
-      else
-        peakTVDAY_years = peakTVDAY
-      end if
-    else
+    !-----------------------------------------------------------------------
+    ! Initialized at 0, first year is 1 
+    max_nyears = 5
+    npeakyears = npeakyears + 1
+
+    if (peakTVDAY > 2._r8 .and. npeakyears == 1) then
       peakTVDAY_years = peakTVDAY
+    else if (peakTVDAY > 2._r8 .and. npeakyears <= max_nyears) then
+      if (peakTVDAY_years > peakTVDAY .or. peakTVDAY_years < 2._r8) then
+        peakTVDAY_years = peakTVDAY
+      else
+        peakTVDAY_years = peakTVDAY_years
+      end if
     end if
 
+    ! re-initialize peakTVDAY for new season
     peakTVDAY = 1._r8
 
   end subroutine check_min_TVpeak_years

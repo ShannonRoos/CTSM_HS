@@ -80,6 +80,7 @@ module CropType
      ! added by SdR as part of climatology-based Tcrit (17-12-25)
      real(r8) , pointer :: peakTVDAY_patch  (:)   ! peak daytime vegetation temperature during crop growing season
      real(r8) , pointer :: peakTVDAY_years_patch  (:)   ! peak daytime vegetation temperature during crop growing season for simulation years
+     integer  , pointer :: npeakyears_patch       (:)    ! number of peakTVyears
    contains
      ! Public routines
      procedure, public  :: Init               ! Initialize the crop type
@@ -267,6 +268,7 @@ contains
     allocate(this%HS_factor_patch          (begp:endp))                      ; this%HS_factor_patch          (:)   = 0.0_r8
     allocate(this%peakTVDAY_patch          (begp:endp))                      ; this%peakTVDAY_patch          (:)   = 1.0_r8
     allocate(this%peakTVDAY_years_patch    (begp:endp))                      ; this%peakTVDAY_years_patch    (:)   = 1.0_r8
+    allocate(this%npeakyears_patch         (begp:endp))                      ; this%npeakyears_patch         (:)   = 0
 
   end subroutine InitAllocate
 
@@ -395,12 +397,16 @@ contains
 
     this%peakTVDAY_patch(begp:endp) = spval
     call hist_addfld1d (fname='PEAKTVDAY', units='Kelvin', &
-         avgflag='A', long_name='peak temperature of TVDAY', &
+         avgflag='I', long_name='peak temperature of TVDAY', &
          ptr_patch=this%peakTVDAY_patch, default='inactive')
     this%peakTVDAY_years_patch(begp:endp) = spval
     call hist_addfld1d (fname='PEAKTVDAY_YRS', units='Kelvin', &
-         avgflag='A', long_name='minimum peak temperature of TVDAY over simulation years', &
+         avgflag='I', long_name='minimum peak temperature of TVDAY over simulation years', &
          ptr_patch=this%peakTVDAY_years_patch, default='inactive')
+!   this%npeakyears_patch(begp:endp) = spval
+!    call hist_addfld1d (fname='NPEAKYRS', units='nyears', &
+!         avgflag='I', long_name='number of years used to define peakTVDAY_YRS', &
+!         ptr_patch=this%npeakyears_patch, default='inactive')
           
 
     this%gdd20_baseline_patch(begp:endp) = spval
@@ -691,6 +697,12 @@ contains
             dim1name='pft', long_name='minimum peak temperature of TVDAY over simulation years', &
             units='Kelvin', &
             interpinic_flag='interp', readvar=readvar, data=this%peakTVDAY_years_patch)
+       call restartvar(ncid=ncid, flag=flag,  varname='npeakyears_patch',xtype=ncd_int, &
+            dim1name='pft', long_name='number of years used for TVPEAK', &
+            units='nyears', &
+            interpinic_flag='interp', readvar=readvar, data=this%npeakyears_patch)
+
+            
 
        call restartvar(ncid=ncid, flag=flag,  varname='harvdate', xtype=ncd_int,  &
             dim1name='pft', long_name='harvest date', units='jday', nvalid_range=(/1,366/), &
