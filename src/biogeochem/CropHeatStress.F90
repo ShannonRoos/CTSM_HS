@@ -74,10 +74,10 @@ contains
 
 
     !----------------------------------------------------------------------
-    if ((peakTVDAY_years + 2._r8) < tcrit_min) then
-       tcrit = tcrit_min
-    else
-       tcrit = peakTVDAY_years + 2._r8
+    tcrit  = peakTVDAY_years !+ 2._r8
+
+    if (tcrit < tcrit_min) then
+      tcrit = tcrit_min
     end if
 
     ! No heat stress if crop isn't alive
@@ -128,11 +128,13 @@ contains
     !-----------------------------------------------------------------------
 
     day_min = 3
-    tcrit  = peakTVDAY_years + 2._r8
+    tcrit  = peakTVDAY_years !+ 2._r8
 
     if (tcrit < tcrit_min) then
       tcrit = tcrit_min
-    else if (tcrit <= 307.15_r8) then
+    end if
+
+    if (tcrit <= 307.15_r8) then
       tmax = tcrit + 15._r8
     else if (tcrit <= 313.15_r8) then
       tmax = tcrit + 10._r8
@@ -150,9 +152,9 @@ contains
     else if (HS_ndays > day_min .and. croplive .and. t_veg_day > tcrit .and. t_veg_day > tcrit_min) then
       if (t_veg_day <= tmax ) then
           !HS_factor = 4 - (1 - (t_veg_day - tcrit)/2)
-          HS_factor = 0.9_r8 * ((t_veg_day - tcrit)/(tmax-tcrit))
+          HS_factor = 0.6_r8 * ((t_veg_day - tcrit)/(tmax-tcrit))
       else
-          HS_factor = 0.9_r8
+          HS_factor = 0.6_r8
       end if
     else
        HS_factor = 0._r8
