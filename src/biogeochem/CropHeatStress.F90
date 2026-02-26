@@ -74,7 +74,7 @@ contains
 
 
     !----------------------------------------------------------------------
-    tcrit  = peakTVDAY_years + 2._r8
+    tcrit  = peakTVDAY_years !+ 2._r8
 
     if (tcrit < tcrit_min) then
       tcrit = tcrit_min
@@ -128,20 +128,20 @@ contains
     !-----------------------------------------------------------------------
 
     day_min = 3
-    tcrit  = peakTVDAY_years + 2._r8
+    tcrit  = peakTVDAY_years !+ 2._r8
 
     if (tcrit < tcrit_min) then
       tcrit = tcrit_min
     end if
 
     if (tcrit <= 307.15_r8) then
-      tmax = tcrit + 15._r8
-      flai_slope = 0.6_r8  !6.5:3._r8, 14:1.2_r8, 26.5:0.6_r8
+      tmax = tcrit + 10._r8
+      flai_slope = 0.4_r8  !!now tcrit+ 10, before tcrit+15: 6.5:3._r8, 14:1.2_r8, 26.5:0.6_r8
     else if (tcrit <= 313.15_r8) then
       tmax = tcrit + 10._r8
       flai_slope = 0.4_r8  !6.5:2._r8, 14:0.8_r8, 26.5:0.4_r8
     else if (tcrit <= 317.15_r8) then
-      tmax = (tcrit + 6._r8)
+      tmax = (tcrit + 5._r8)
       flai_slope = 0.2_r8  !6.5:1._r8, 14:0.4_r8, 26.5:0.2_r8
     else if (tcrit > 317.15_r8) then
       tmax = 323.15_r8    !6.5:1._r8, 14:0.4_r8, 26.5:0.2_r8
@@ -152,14 +152,14 @@ contains
     if (HS_ndays == day_min .and. croplive .and. t_veg_day > tcrit .and. t_veg_day > tcrit_min) then
        ! onset heatwave
        !HS_factor = 0.05_r8  ! rep
-       HS_factor = 1.5_r8    ! lai
+       HS_factor = 3._r8    ! lai
     else if (HS_ndays > day_min .and. croplive .and. t_veg_day > tcrit .and. t_veg_day > tcrit_min) then
       if (t_veg_day <= tmax ) then
           !HS_factor = 0.9_r8 * ((t_veg_day - tcrit)/(tmax-tcrit))   ! rep
-          HS_factor = 2.5_r8 - (1._r8 - ((t_veg_day - tcrit) / flai_slope))   ! lai
+          HS_factor = 4._r8 - (1._r8 - ((t_veg_day - tcrit) / flai_slope))   ! lai
       else
           !HS_factor = 0.9_r8  ! rep
-          HS_factor = 5.5_r8   ! lai
+          HS_factor = 27._r8   ! lai 7._r8, 15._r8, 27._r8
       end if
     else
        !HS_factor = 0._r8  ! rep
