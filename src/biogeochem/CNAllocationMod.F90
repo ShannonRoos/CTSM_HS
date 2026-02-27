@@ -389,10 +389,10 @@ contains
 
              !added by SdR for heatstress on grainc
              
-             if (HS_factor(p) > 0.03_r8) then
-               aloss_hs(p)   = max(0._r8, (1._r8 - aroot(p) - astem(p) - aleaf(p)) * HS_factor(p))
-               aroot(p)      = max(0._r8, aroot(p) + aloss_hs(p))
-             end if
+             !if (HS_factor(p) > 0.03_r8) then
+             aloss_hs(p)   = max(0._r8, (1._r8 - aroot(p) - astem(p) - aleaf(p)) * HS_factor(p))
+             aroot(p)      = max(0._r8, aroot(p) + aloss_hs(p))
+             !end if
 
              ! For AgroIBIS-based crop model, all repr allocation is assumed to go
              ! into the last reproductive pool. In practice there is only a single

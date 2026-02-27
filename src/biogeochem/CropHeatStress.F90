@@ -135,11 +135,11 @@ contains
     end if
 
     if (tcrit <= 307.15_r8) then
-      tmax = tcrit + 15._r8
+      tmax = tcrit + 10._r8  !15._r8
     else if (tcrit <= 313.15_r8) then
       tmax = tcrit + 10._r8
     else if (tcrit <= 317.15_r8) then
-      tmax = (tcrit + 6._r8)
+      tmax = (tcrit + 5._r8)
     else if (tcrit > 317.15_r8) then
       tmax = 323.15_r8
     end if
@@ -148,13 +148,13 @@ contains
     if (HS_ndays == day_min .and. croplive .and. t_veg_day > tcrit .and. t_veg_day > tcrit_min) then
        ! onset heatwave
        !HS_factor = 3._r8
-       HS_factor = 0.05_r8
+       HS_factor = 0.1_r8
     else if (HS_ndays > day_min .and. croplive .and. t_veg_day > tcrit .and. t_veg_day > tcrit_min) then
       if (t_veg_day <= tmax ) then
           !HS_factor = 4 - (1 - (t_veg_day - tcrit)/2)
-          HS_factor = 0.6_r8 * ((t_veg_day - tcrit)/(tmax-tcrit))
+          HS_factor = 0.1_r8 + (0.8_r8 * ((t_veg_day - tcrit)/(tmax-tcrit)))
       else
-          HS_factor = 0.6_r8
+          HS_factor = 0.9_r8
       end if
     else
        HS_factor = 0._r8
