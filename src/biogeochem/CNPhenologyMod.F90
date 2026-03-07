@@ -2169,9 +2169,9 @@ contains
          if (is_beg_curr_day()) then
             call crop_heatstress_ndays(HS_ndays(p), heatwave_crop(p), t_veg_day(p), croplive(p),peakTVDAY_years(p))
             call calc_HS_factor(HS_factor(p), HS_ndays(p), t_veg_day(p),  croplive(p),peakTVDAY_years(p))
-            if (cphase(p) == cphase_grainfill) then
-               call calc_TVDAY_peak(peakTVDAY(p), t_veg_day(p), croplive(p))
-            end if
+            !if (cphase(p) == cphase_grainfill) then
+            call calc_TVDAY_peak(peakTVDAY(p), t_veg_day(p), croplive(p))
+            !end if
          end if
 
          ! background litterfall and transfer rates; long growing season factor

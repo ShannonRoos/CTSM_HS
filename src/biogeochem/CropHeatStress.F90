@@ -30,8 +30,8 @@ module CropHeatStress
 
   !S
   ! !PUBLIC FOR UNIT TESTING
-  real(r8), public, parameter :: tcrit_min = 296.15_r8 !23 degrees celcius
-  !real(r8), public, parameter :: tmax = 318.15_r8
+  real(r8), public, parameter :: tcrit_min = 298.15_r8
+  !real(r8), public, parameter :: tmax_max = 313.15_r8
   real(r8), public, parameter :: HS_ndays_min = 3._r8
 
   character(len=*), parameter, private :: sourcefile = &
@@ -74,7 +74,7 @@ contains
 
 
     !----------------------------------------------------------------------
-    tcrit  = peakTVDAY_years !+ 2._r8
+    tcrit  = peakTVDAY_years
 
     if (tcrit < tcrit_min) then
       tcrit = tcrit_min
@@ -128,25 +128,28 @@ contains
     !-----------------------------------------------------------------------
 
     day_min = 3
-    tcrit  = peakTVDAY_years !+ 2._r8
+    tcrit  = peakTVDAY_years
 
     if (tcrit < tcrit_min) then
       tcrit = tcrit_min
     end if
 
-    if (tcrit <= 307.15_r8) then
-      tmax = tcrit + 10._r8
-      flai_slope = 0.4_r8  !!now tcrit+ 10, before tcrit+15: 6.5:3._r8, 14:1.2_r8, 26.5:0.6_r8
-    else if (tcrit <= 313.15_r8) then
-      tmax = tcrit + 10._r8
-      flai_slope = 0.4_r8  !6.5:2._r8, 14:0.8_r8, 26.5:0.4_r8
-    else if (tcrit <= 317.15_r8) then
-      tmax = (tcrit + 5._r8)
-      flai_slope = 0.2_r8  !6.5:1._r8, 14:0.4_r8, 26.5:0.2_r8
-    else if (tcrit > 317.15_r8) then
-      tmax = 323.15_r8    !6.5:1._r8, 14:0.4_r8, 26.5:0.2_r8
-      flai_slope = 0.2_r8
-    end if
+    tmax = 318.15_r8
+    flai_slope = 1.5_r8 
+
+    ! if (tcrit <= 308.15_r8) then
+    !   tmax = tcrit + 10._r8
+    !   flai_slope = 0.4_r8  !!now tcrit+ 10, before tcrit+15: 6.5:3._r8, 14:1.2_r8, 26.5:0.6_r8
+    ! ! else if (tcrit <= 308.15_r8) then
+    ! !   tmax = tcrit + 10._r8
+    ! !   flai_slope = 0.4_r8  !6.5:2._r8, 14:0.8_r8, 26.5:0.4_r8
+    ! else if (tcrit <= 313.15_r8) then
+    !   tmax = (tcrit + 5._r8)
+    !   flai_slope = 0.2_r8  !6.5:1._r8, 14:0.4_r8, 26.5:0.2_r8
+    ! else if (tcrit > 313.15_r8) then
+    !   tmax = 318.15_r8    !6.5:1._r8, 14:0.4_r8, 26.5:0.2_r8
+    !   flai_slope = 0.2_r8
+    ! end if
 
     !check  if stress occurs
     if (HS_ndays == day_min .and. croplive .and. t_veg_day > tcrit .and. t_veg_day > tcrit_min) then
@@ -156,10 +159,10 @@ contains
     else if (HS_ndays > day_min .and. croplive .and. t_veg_day > tcrit .and. t_veg_day > tcrit_min) then
       if (t_veg_day <= tmax ) then
           !HS_factor = 0.9_r8 * ((t_veg_day - tcrit)/(tmax-tcrit))   ! rep
-          HS_factor = 4._r8 - (1._r8 - ((t_veg_day - tcrit) / flai_slope))   ! lai
+          HS_factor = 4._r8 - (1._r8 - ((t_veg_day - tcrit_min) / flai_slope))   ! lai
       else
           !HS_factor = 0.9_r8  ! rep
-          HS_factor = 27._r8   ! lai 7._r8, 15._r8, 27._r8
+          HS_factor = 15._r8   ! lai 7._r8, 15._r8, 27._r8
       end if
     else
        !HS_factor = 0._r8  ! rep
