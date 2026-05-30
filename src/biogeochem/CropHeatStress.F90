@@ -123,50 +123,42 @@ contains
 
     ! !LOCAL VARIABLES:
     integer  :: day_min
-    real(r8) :: tcrit, tmax, flai_slope
+    real(r8) :: tcrit, tmax, Fheat_max, onset_jump 
 
     !-----------------------------------------------------------------------
 
     day_min = 3
     tcrit  = peakTVDAY_years
 
+    ! define Tmax based on Tcrit value. Larger values for Tmax results in steeper slopes to Tmax. Tmax range is between 35 and 49 degrees Celsius
     if (tcrit < tcrit_min) then
       tcrit = tcrit_min
+      tmax  = 273.15 + 35._r8
+    else if (tcrit > tcrit_min .and. tcrit <= 318.15_r8) then
+      !Tcrit smaller or eq to 45degreesC
+      tmax = (273.15 + 35._r8) + (7._r8/10._r8) * (tcrit - tcrit_min)
+    else if (tcrit > 318.15_r8) then
+      tcrit = 318.15_r8
+      tmax = 273.15 + 49._r8
     end if
 
-    tmax = 318.15_r8
-    flai_slope = 1.5_r8 
+    ! function parameters to be tested
+    Fheat_max  = 0.9_r8   ! lai(15, 25) rep(0.6, 0.9)
+    onset_jump = 0.2_r8 * Fheat_max 
 
-    ! if (tcrit <= 308.15_r8) then
-    !   tmax = tcrit + 10._r8
-    !   flai_slope = 0.4_r8  !!now tcrit+ 10, before tcrit+15: 6.5:3._r8, 14:1.2_r8, 26.5:0.6_r8
-    ! ! else if (tcrit <= 308.15_r8) then
-    ! !   tmax = tcrit + 10._r8
-    ! !   flai_slope = 0.4_r8  !6.5:2._r8, 14:0.8_r8, 26.5:0.4_r8
-    ! else if (tcrit <= 313.15_r8) then
-    !   tmax = (tcrit + 5._r8)
-    !   flai_slope = 0.2_r8  !6.5:1._r8, 14:0.4_r8, 26.5:0.2_r8
-    ! else if (tcrit > 313.15_r8) then
-    !   tmax = 318.15_r8    !6.5:1._r8, 14:0.4_r8, 26.5:0.2_r8
-    !   flai_slope = 0.2_r8
-    ! end if
 
     !check  if stress occurs
     if (HS_ndays == day_min .and. croplive .and. t_veg_day > tcrit .and. t_veg_day > tcrit_min) then
-       ! onset heatwave
-       !HS_factor = 0.05_r8  ! rep
-       HS_factor = 3._r8    ! lai
+      ! onset heatwave
+      HS_factor = onset_jump
     else if (HS_ndays > day_min .and. croplive .and. t_veg_day > tcrit .and. t_veg_day > tcrit_min) then
       if (t_veg_day <= tmax ) then
-          !HS_factor = 0.9_r8 * ((t_veg_day - tcrit)/(tmax-tcrit))   ! rep
-          HS_factor = 4._r8 - (1._r8 - ((t_veg_day - tcrit_min) / flai_slope))   ! lai
+        HS_factor = onset_jump + ((Fheat_max - onset_jump) * ((t_veg_day - tcrit) / (tmax - tcrit)))
       else
-          !HS_factor = 0.9_r8  ! rep
-          HS_factor = 15._r8   ! lai 7._r8, 15._r8, 27._r8
+        HS_factor = Fheat_max 
       end if
     else
-       !HS_factor = 0._r8  ! rep
-       HS_factor = 1._r8  ! lai
+      HS_factor = 0._r8  ! no stress values lai:1._r8 ; rep:0._r8
     end if
 
 

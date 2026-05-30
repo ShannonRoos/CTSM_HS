@@ -387,18 +387,18 @@ contains
                      huigrain(p)),1._r8)**allconsl(ivt(p)) )))
              end if
 
-             !added by SdR for heatstress on grainc
-             
-            !  if (HS_factor(p) > 0.03_r8) then
-            !    aloss_hs(p)   = max(0._r8, (1._r8 - aroot(p) - astem(p) - aleaf(p)) * HS_factor(p))
-            !    aroot(p)      = max(0._r8, aroot(p) + aloss_hs(p))
-            !  end if
 
              ! For AgroIBIS-based crop model, all repr allocation is assumed to go
              ! into the last reproductive pool. In practice there is only a single
              ! reproductive pool with the AgroIBIS-based crop model, but for
              ! software testing we can have multiple, in which situation we want the
              ! active pool to be the last one.
+             
+             if (HS_factor(p) > 0.03_r8) then
+               aloss_hs(p)   = max(0._r8, (1._r8 - aroot(p) - astem(p) - aleaf(p)) * HS_factor(p))
+               aroot(p)      = max(0._r8, aroot(p) + aloss_hs(p))
+             end if
+
              do k = 1, nrepr-1
                 arepr(p,k) = 0._r8
              end do
