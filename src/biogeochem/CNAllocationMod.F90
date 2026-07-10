@@ -396,7 +396,7 @@ contains
              
              if (HS_factor(p) > 0.03_r8) then
                aloss_hs(p)   = max(0._r8, (1._r8 - aroot(p) - astem(p) - aleaf(p)) * HS_factor(p))
-               aroot(p)      = max(0._r8, aroot(p) + aloss_hs(p))
+               astem(p)      = max(0._r8, astem(p) + aloss_hs(p))
              end if
 
              do k = 1, nrepr-1

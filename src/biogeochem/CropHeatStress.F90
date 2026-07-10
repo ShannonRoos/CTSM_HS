@@ -30,8 +30,7 @@ module CropHeatStress
 
   !S
   ! !PUBLIC FOR UNIT TESTING
-  real(r8), public, parameter :: tcrit_min = 298.15_r8
-  !real(r8), public, parameter :: tmax_max = 313.15_r8
+  real(r8), public, parameter :: tcrit_min = 296.15_r8
   real(r8), public, parameter :: HS_ndays_min = 3._r8
 
   character(len=*), parameter, private :: sourcefile = &
@@ -123,7 +122,7 @@ contains
 
     ! !LOCAL VARIABLES:
     integer  :: day_min
-    real(r8) :: tcrit, tmax, Fheat_max, onset_jump 
+    real(r8) :: tcrit, tmax, Fheat_max, onset_jump
 
     !-----------------------------------------------------------------------
 
@@ -133,23 +132,23 @@ contains
     ! define Tmax based on Tcrit value. Larger values for Tmax results in steeper slopes to Tmax. Tmax range is between 35 and 49 degrees Celsius
     if (tcrit < tcrit_min) then
       tcrit = tcrit_min
-      tmax  = 273.15 + 35._r8
+      tmax  = 273.15_r8 + 35._r8
     else if (tcrit > tcrit_min .and. tcrit <= 318.15_r8) then
       !Tcrit smaller or eq to 45degreesC
-      tmax = (273.15 + 35._r8) + (7._r8/10._r8) * (tcrit - tcrit_min)
+      tmax = (273.15_r8 + 35._r8) + (7._r8 / 11._r8) * (tcrit - tcrit_min)
     else if (tcrit > 318.15_r8) then
       tcrit = 318.15_r8
-      tmax = 273.15 + 49._r8
+      tmax = 273.15_r8 + 49._r8
     end if
 
     ! function parameters to be tested
-    Fheat_max  = 0.9_r8   ! lai(15, 25) rep(0.6, 0.9)
-    onset_jump = 0.2_r8 * Fheat_max 
+    Fheat_max  = 0.6_r8   ! lai(5, 15, 25) rep(0.3,0.6, 0.9)
+    onset_jump = 0.2_r8 * Fheat_max
 
 
     !check  if stress occurs
-    if (HS_ndays == day_min .and. croplive .and. t_veg_day > tcrit .and. t_veg_day > tcrit_min) then
-      ! onset heatwave
+    if (HS_ndays >= day_min .and. HS_ndays < (day_min + 1) .and. croplive .and. t_veg_day > tcrit .and. t_veg_day > tcrit_min) then
+      ! onset heatwave first day
       HS_factor = onset_jump
     else if (HS_ndays > day_min .and. croplive .and. t_veg_day > tcrit .and. t_veg_day > tcrit_min) then
       if (t_veg_day <= tmax ) then

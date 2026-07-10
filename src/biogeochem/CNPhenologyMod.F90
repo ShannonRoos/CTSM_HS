@@ -2169,9 +2169,9 @@ contains
          if (is_beg_curr_day()) then
             call crop_heatstress_ndays(HS_ndays(p), heatwave_crop(p), t_veg_day(p), croplive(p),peakTVDAY_years(p))
             call calc_HS_factor(HS_factor(p), HS_ndays(p), t_veg_day(p),  croplive(p),peakTVDAY_years(p))
-            !if (cphase(p) == cphase_grainfill) then
-            call calc_TVDAY_peak(peakTVDAY(p), t_veg_day(p), croplive(p))
-            !end if
+            if (cphase(p) == cphase_grainfill) then
+             call calc_TVDAY_peak(peakTVDAY(p), t_veg_day(p), croplive(p))
+            end if
          end if
 
          ! background litterfall and transfer rates; long growing season factor
@@ -2616,7 +2616,7 @@ contains
 
             else if (hui(p) >= huigrain(p)) then
                cphase(p) = cphase_grainfill
-               bglfr(p) = (1._r8/(leaf_long(ivt(p))*avg_dayspyr*secspday)) ! * HS_factor(p) ! added by SdR for heat stress in LAI senescence
+               bglfr(p) = (1._r8/(leaf_long(ivt(p))*avg_dayspyr*secspday)) !* HS_factor(p) ! added by SdR for heat stress in LAI senescence
             end if
 
             ! continue fertilizer application while in phase 2;
